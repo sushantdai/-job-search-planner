@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Search Scenario Planner & Strategy Simulator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Custom subtle range slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      border-radius: 9999px;
+      background: #e2e8f0;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+      border: 3px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+      background: #1d4ed8;
+    }
+    input[type="range"].emerald-slider::-webkit-slider-thumb {
+      background: #059669;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.35);
+    }
+    input[type="range"].amber-slider::-webkit-slider-thumb {
+      background: #d97706;
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+    }
+    input[type="range"].slate-slider::-webkit-slider-thumb {
+      background: #475569;
+      box-shadow: 0 2px 6px rgba(71, 85, 105, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+
+  <!-- Top Navigation / Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+            ASAP Offer Model
+          </span>
+          <span class="text-xs text-slate-500">Marketing Analytics &amp; Strategy Profile</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-1">
+          Job Search Scenario Planner
+        </h1>
+      </div>
+
+      <!-- Horizon & Preset Quick Controls -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200" role="group" aria-label="Simulation Horizon">
+          <button type="button" data-days="30" class="horizon-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-sm transition">
+            30 Days
+          </button>
+          <button type="button" data-days="60" class="horizon-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">
+            60 Days
+          </button>
+          <button type="button" data-days="90" class="horizon-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">
+            90 Days
+          </button>
+        </div>
+        <button id="resetBtn" type="button" class="px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition">
+          Reset Baseline
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+
+    <!-- Top Live Goal Metric KPI Banner -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Primary Goal Metric: Expected Interviews -->
+      <div class="bg-white rounded-2xl border-2 border-blue-600 p-5 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-blue-700">Primary Goal Metric</span>
+          <span id="horizonTag" class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">30-Day Window</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiInterviews" class="text-3xl sm:text-4xl font-extrabold text-slate-900">5.2</span>
+          <span class="text-sm font-medium text-slate-500">interviews</span>
+        </div>
+        <p id="kpiScreensSub" class="mt-1 text-xs text-slate-600">
+          From <span class="font-semibold text-slate-800">8.8</span> phone screens
+        </p>
+      </div>
+
+      <!-- Expected Offers & Probability -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Offer Probability</span>
+          <span id="kpiOffersTag" class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">~1.1 expected offers</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiOfferProb" class="text-3xl sm:text-4xl font-extrabold text-emerald-600">68%</span>
+          <span class="text-sm font-medium text-slate-500">≥ 1 offer</span>
+        </div>
+        <p class="mt-1 text-xs text-slate-600">
+          Est. time to first offer: <span id="kpiDaysToOffer" class="font-semibold text-slate-800">34 days</span>
+        </p>
+      </div>
+
+      <!-- Weekly Time Allocation & Burnout Guardrail -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Weekly Effort Load</span>
+          <span id="burnoutBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Sustainable</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiWeeklyHours" class="text-3xl sm:text-4xl font-extrabold text-slate-900">27.5</span>
+          <span class="text-sm font-medium text-slate-500">hrs / week</span>
+        </div>
+        <p id="burnoutNote" class="mt-1 text-xs text-slate-600">
+          Balanced daily focus without quality drop
+        </p>
+      </div>
+
+      <!-- Effective Funnel Conversion Rate -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Blended Screen Rate</span>
+          <span class="text-xs font-medium text-slate-500">Cold + Warm</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiBlendedRate" class="text-3xl sm:text-4xl font-extrabold text-slate-900">4.4%</span>
+          <span class="text-sm font-medium text-slate-500">per touchpoint</span>
+        </div>
+        <p id="kpiLiftNote" class="mt-1 text-xs text-slate-600">
+          +1.9% lift over cold-apply baseline
+        </p>
+      </div>
+    </section>
+
+    <!-- Main Interactive Grid: Left Sliders | Right Visual Funnel & Live Diagnostics -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Variable Sliders (5 cols on lg) -->
+      <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-6">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-lg font-bold text-slate-900">Adjust Your 3 Core Levers</h2>
+          <p class="text-xs text-slate-500 mt-1">
+            Move each slider to test how daily actions shift your short-term interview pipeline.
+          </p>
+        </div>
+
+        <!-- Lever 1: Daily Targeted Applications -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="sliderApps" class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block"></span>
+              1. Daily Targeted Applications
+            </label>
+            <span id="valApps" class="text-sm font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg">8 / day</span>
+          </div>
+          <input id="sliderApps" type="range" min="1" max="20" step="1" value="8" class="w-full cursor-pointer" />
+          <div class="flex justify-between text-[11px] text-slate-400">
+            <span>1/day (Ultra-selective)</span>
+            <span>8/day (Balanced)</span>
+            <span>20/day (Volume spray)</span>
+          </div>
+          <p class="text-xs text-slate-500">
+            Focus on Marketing Analyst, Insights, &amp; Strategy roles matching your SQL/Python/BI stack.
+          </p>
+        </div>
+
+        <!-- Lever 2: Daily Networking & Referral Touchpoints -->
+        <div class="space-y-2 pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between">
+            <label for="sliderNetwork" class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span>
+              2. Daily Networking Touchpoints
+            </label>
+            <span id="valNetwork" class="text-sm font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg">3 / day</span>
+          </div>
+          <input id="sliderNetwork" type="range" min="0" max="12" step="1" value="3" class="w-full emerald-slider cursor-pointer" />
+          <div class="flex justify-between text-[11px] text-slate-400">
+            <span>0/day (Cold only)</span>
+            <span>3/day (Warm referrals)</span>
+            <span>12/day (Outreach sprint)</span>
+          </div>
+          <p class="text-xs text-slate-500">
+            Hiring managers, alumni, &amp; recruiters on LinkedIn—converts ~4x higher than cold portals.
+          </p>
+        </div>
+
+        <!-- Lever 3: Weekly Resume Tailoring & Pitch Prep -->
+        <div class="space-y-2 pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between">
+            <label for="sliderTailor" class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-600 inline-block"></span>
+              3. Weekly Tailoring &amp; Interview Prep
+            </label>
+            <span id="valTailor" class="text-sm font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-lg">6 hrs / wk</span>
+          </div>
+          <input id="sliderTailor" type="range" min="0" max="15" step="1" value="6" class="w-full amber-slider cursor-pointer" />
+          <div class="flex justify-between text-[11px] text-slate-400">
+            <span>0 hrs (Generic CV)</span>
+            <span>6 hrs (Role-tailored)</span>
+            <span>15 hrs (Deep case prep)</span>
+          </div>
+          <p class="text-xs text-slate-500">
+            Boosts application-to-screen rate AND improves screen-to-interview pass rate.
+          </p>
+        </div>
+
+        <!-- Optional Control: Upskilling Hours (Shown explicitly with lag reality) -->
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="sliderUpskill" class="text-xs font-bold uppercase tracking-wide text-slate-700 flex items-center gap-1.5">
+              <span>4. Daily Upskilling / Cert Study</span>
+              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">60-Day Lag</span>
+            </label>
+            <span id="valUpskill" class="text-xs font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded-md">1.0 hr / day</span>
+          </div>
+          <input id="sliderUpskill" type="range" min="0" max="4" step="0.5" value="1" class="w-full slate-slider cursor-pointer" />
+          <p id="upskillInsight" class="text-[11px] text-slate-600 leading-relaxed">
+            At <span class="font-semibold">1.0 hr/day</span>, study adds minimal lift in a 30-day sprint, but begins paying off in 60–90 day windows.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Column: Live Conversion Funnel & Dynamic Bottleneck Advisor (7 cols on lg) -->
+      <div class="lg:col-span-7 flex flex-col gap-6">
+
+        <!-- Live Funnel Visualization Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm flex-1">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Live Hiring Funnel Breakdown</h2>
+              <p class="text-xs text-slate-500">
+                Projected pipeline over <span id="funnelDaysLabel" class="font-semibold text-slate-700">20 active weekdays (30 calendar days)</span>
+              </p>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+              <span class="flex items-center gap-1.5 text-slate-600">
+                <span class="w-2.5 h-2.5 rounded-sm bg-blue-500 inline-block"></span> Cold Apps
+              </span>
+              <span class="flex items-center gap-1.5 text-slate-600">
+                <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block"></span> Warm Outreach
+              </span>
+            </div>
+          </div>
+
+          <!-- Funnel Stages -->
+          <div class="space-y-4">
+            <!-- Stage 1: Total Outbound Touchpoints -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-semibold">
+                <span class="text-slate-700">1. Outbound Volume (Applications + Warm Outreach)</span>
+                <span id="stage1Count" class="text-slate-900">220 total (160 apps + 60 outreach)</span>
+              </div>
+              <div class="w-full h-7 bg-slate-100 rounded-xl overflow-hidden flex p-1 gap-1">
+                <div id="barStage1Cold" class="bg-blue-500 h-full rounded-lg transition-all duration-300" style="width: 73%;"></div>
+                <div id="barStage1Warm" class="bg-emerald-500 h-full rounded-lg transition-all duration-300" style="width: 27%;"></div>
+              </div>
+            </div>
+
+            <!-- Stage 2: Recruiter / Phone Screens -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-semibold">
+                <span class="text-slate-700">2. Recruiter Phone Screens (like MRA / Strategist screens)</span>
+                <span id="stage2Count" class="text-slate-900">9.8 screens (4.2 cold + 5.6 warm)</span>
+              </div>
+              <div class="w-full h-7 bg-slate-100 rounded-xl overflow-hidden flex p-1 gap-1">
+                <div id="barStage2Cold" class="bg-blue-500 h-full rounded-lg transition-all duration-300" style="width: 25%;"></div>
+                <div id="barStage2Warm" class="bg-emerald-500 h-full rounded-lg transition-all duration-300" style="width: 33%;"></div>
+              </div>
+            </div>
+
+            <!-- Stage 3: Hiring Manager / Panel Interviews -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-semibold">
+                <span class="text-slate-700">3. Hiring Manager &amp; Face-to-Face Interviews</span>
+                <span id="stage3Count" class="text-blue-700 font-bold">5.4 interviews</span>
+              </div>
+              <div class="w-full h-7 bg-slate-100 rounded-xl overflow-hidden flex p-1">
+                <div id="barStage3" class="bg-indigo-600 h-full rounded-lg transition-all duration-300" style="width: 36%;"></div>
+              </div>
+            </div>
+
+            <!-- Stage 4: Final Round & Offer -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-semibold">
+                <span class="text-slate-700">4. Projected Job Offers</span>
+                <span id="stage4Count" class="text-emerald-700 font-bold">1.15 offers</span>
+              </div>
+              <div class="w-full h-7 bg-slate-100 rounded-xl overflow-hidden flex p-1">
+                <div id="barStage4" class="bg-emerald-600 h-full rounded-lg transition-all duration-300" style="width: 18%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Diagnostic Callout -->
+          <div id="advisorBox" class="mt-6 rounded-xl bg-blue-50 border border-blue-200 p-4 flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 font-bold text-sm">
+              !
+            </div>
+            <div>
+              <h3 id="advisorTitle" class="text-xs font-bold uppercase tracking-wider text-blue-900">
+                Live Bottleneck Diagnosis
+              </h3>
+              <p id="advisorText" class="text-xs sm:text-sm text-blue-900/90 mt-1 leading-relaxed">
+                Warm networking is generating over half your recruiter screens from just 27% of your total touchpoints. Increasing daily outreach by +2 messages yields more interviews than adding 5 more cold applications.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Side-by-Side Strategy Comparison Section -->
+    <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-slate-100">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Side-by-Side Strategy Comparison</h2>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Compare your <span class="font-semibold text-blue-700">Live Custom Plan</span> directly against 3 benchmark strategies over the selected <span class="font-semibold text-slate-700" id="compWindowText">30-day</span> window. Click any strategy to load its sliders.
+          </p>
+        </div>
+        <span id="winnerSummaryBadge" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 self-start sm:self-auto">
+          Winner: Warm Networking + Tailored Sprint
+        </span>
+      </div>
+
+      <!-- 4 Strategy Cards Side by Side -->
+      <div id="comparisonGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5">
+        <!-- Populated dynamically by JavaScript so live slider changes update Card 1 and recalculate the winner badge -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /**
+     * Job Search Scenario Planner & Strategy Simulator
+     * Models short-horizon (30/60/90 day) interview & offer velocity for a Marketing Analytics & Strategy candidate.
+     */
+    (function () {
+      // State object representing active sliders and selected horizon
+      const state = {
+        days: 30,          // Calendar days (30, 60, 90)
+        appsPerDay: 8,     // Lever 1: Daily targeted applications
+        networkPerDay: 3,  // Lever 2: Daily warm networking/referral touchpoints
+        tailorHrsWk: 6,    // Lever 3: Weekly resume tailoring & interview prep hours
+        upskillHrsDay: 1.0 // Lever 4: Daily upskilling/cert study hours (delayed payoff)
+      };
+
+      // Benchmark strategies tailored to the user's background & discussion
+      const PRESET_STRATEGIES = [
+        {
+          id: 'volume-grind',
+          name: 'High-Volume Cold Apply',
+          tag: 'Old Habit',
+          description: 'Heavy portal applications, minimal outreach, low resume tailoring.',
+          appsPerDay: 15,
+          networkPerDay: 0,
+          tailorHrsWk: 2,
+          upskillHrsDay: 1.0
+        },
+        {
+          id: 'upskill-heavy',
+          name: 'Study-First / Upskill Heavy',
+          tag: 'Delayed Payoff',
+          description: '3 hrs/day on certs & courses, fewer applications & networking.',
+          appsPerDay: 4,
+          networkPerDay: 1,
+          tailorHrsWk: 3,
+          upskillHrsDay: 3.0
+        },
+        {
+          id: 'warm-sprint',
+          name: 'Warm Outreach + Tailored',
+          tag: 'Recommended',
+          description: 'Focused daily apps paired with high-leverage referrals & case prep.',
+          appsPerDay: 7,
+          networkPerDay: 5,
+          tailorHrsWk: 8,
+          upskillHrsDay: 0.5
+        }
+      ];
+
+      // DOM References
+      const sliderApps = document.getElementById('sliderApps');
+      const sliderNetwork = document.getElementById('sliderNetwork');
+      const sliderTailor = document.getElementById('sliderTailor');
+      const sliderUpskill = document.getElementById('sliderUpskill');
+
+      const valApps = document.getElementById('valApps');
+      const valNetwork = document.getElementById('valNetwork');
+      const valTailor = document.getElementById('valTailor');
+      const valUpskill = document.getElementById('valUpskill');
+
+      const horizonBtns = document.querySelectorAll('.horizon-btn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      /**
+       * Core Simulation Engine
+       * Calculates expected screens, interviews, offers, offer probability, and weekly effort hours.
+       */
+      function runScenarioModel(params, calendarDays) {
+        const workdays = Math.round(calendarDays * (20 / 30)); // 20 weekdays per 30 days
+        const weeks = calendarDays / 7;
+
+        const totalApps = params.appsPerDay * workdays;
+        const totalOutreach = params.networkPerDay * workdays;
+        const totalTouchpoints = totalApps + totalOutreach;
+
+        // Weekly hours calculation:
+        // ~22 mins per targeted application + ~18 mins per tailored networking outreach + weekly prep + daily upskilling
+        const weeklyAppHrs = (params.appsPerDay * 5 * 22) / 60;
+        const weeklyNetHrs = (params.networkPerDay * 5 * 18) / 60;
+        const weeklyUpskillHrs = params.upskillHrsDay * 5;
+        const totalWeeklyHrs = weeklyAppHrs + weeklyNetHrs + params.tailorHrsWk + weeklyUpskillHrs;
+
+        // Quality / Fatigue modifier:
+        // Pushing beyond 12 apps/day or 42 hrs/week causes generic resume fatigue
+        let volumeQualityFactor = 1.0;
+        if (params.appsPerDay > 12) {
+          volumeQualityFactor -= (params.appsPerDay - 12) * 0.035;
+        }
+        if (totalWeeklyHrs > 42) {
+          volumeQualityFactor -= (totalWeeklyHrs - 42) * 0.012;
+        }
+        volumeQualityFactor = Math.max(0.55, volumeQualityFactor);
+
+        // Tailoring & pitch prep boost (diminishing returns curve up to 15 hrs/wk)
+        const tailorFactor = 1 + Math.min(0.55, (params.tailorHrsWk / 10) * 0.42);
+
+        // Upskilling lag effect:
+        // Almost zero lift in 30 days (4%), modest lift at 60 days (14%), stronger at 90 days (25%)
+        let horizonLagMultiplier = 0.03;
+        if (calendarDays === 60) horizonLagMultiplier = 0.11;
+        if (calendarDays === 90) horizonLagMultiplier = 0.22;
+        const upskillLift = 1 + (Math.min(params.upskillHrsDay, 3.5) / 3) * horizonLagMultiplier;
+
+        // Baseline conversion rates grounded in user's profile:
+        // Cold application -> Screen: 2.5% baseline
+        const coldScreenRate = 0.025 * volumeQualityFactor * tailorFactor * upskillLift;
+
+        // Warm networking / referral -> Screen/Intro Call: 9.5% baseline
+        const warmScreenRate = 0.095 * (0.85 + 0.15 * tailorFactor) * upskillLift;
+
+        const coldScreens = totalApps * coldScreenRate;
+        const warmScreens = totalOutreach * warmScreenRate;
+        const totalScreens = coldScreens + warmScreens;
+
+        // Screen -> Hiring Manager / Face-to-Face Interview rate (50% baseline, boosted by prep)
+        const screenToInterviewRate = Math.min(0.75, 0.48 + (params.tailorHrsWk / 15) * 0.22);
+        const totalInterviews = totalScreens * screenToInterviewRate;
+
+        // Interview -> Offer rate (22% baseline, boosted by case/interview prep)
+        const interviewToOfferRate = Math.min(0.35, 0.20 + (params.tailorHrsWk / 15) * 0.10);
+        const expectedOffers = totalInterviews * interviewToOfferRate;
+
+        // Probability of landing AT LEAST 1 offer: 1 - e^(-expectedOffers)
+        const probAtLeastOneOffer = Math.min(99, Math.round((1 - Math.exp(-expectedOffers)) * 100));
+
+        // Estimated calendar days to first offer based on daily offer velocity
+        const dailyOfferVelocity = expectedOffers / calendarDays;
+        const estDaysToOffer = dailyOfferVelocity > 0.005
+          ? Math.min(180, Math.round(0.7 / dailyOfferVelocity))
+          : 180;
+
+        const blendedScreenRate = totalTouchpoints > 0
+          ? (totalScreens / totalTouchpoints) * 100
+          : 0;
+
+        return {
+          workdays,
+          totalApps,
+          totalOutreach,
+          totalTouchpoints,
+          coldScreens,
+          warmScreens,
+          totalScreens,
+          totalInterviews,
+          expectedOffers,
+          probAtLeastOneOffer,
+          estDaysToOffer,
+          totalWeeklyHrs,
+          blendedScreenRate
+        };
+      }
+
+      /**
+       * Updates all UI elements, KPI cards, funnel bars, advisor diagnostics, and side-by-side comparison cards.
+       */
+      function render() {
+        // Sync slider readouts
+        valApps.textContent = `${state.appsPerDay} / day`;
+        valNetwork.textContent = `${state.networkPerDay} / day`;
+        valTailor.textContent = `${state.tailorHrsWk} hrs / wk`;
+        valUpskill.textContent = `${state.upskillHrsDay.toFixed(1)} hr / day`;
+
+        const res = runScenarioModel(state, state.days);
+
+        // Update Top KPI Cards
+        document.getElementById('horizonTag').textContent = `${state.days}-Day Window`;
+        document.getElementById('kpiInterviews').textContent = res.totalInterviews.toFixed(1);
+        document.getElementById('kpiScreensSub').innerHTML =
+          `From <span class="font-semibold text-slate-800">${res.totalScreens.toFixed(1)}</span> recruiter screens`;
+
+        document.getElementById('kpiOfferProb').textContent = `${res.probAtLeastOneOffer}%`;
+        document.getElementById('kpiOffersTag').textContent = `~${res.expectedOffers.toFixed(2)} expected offers`;
+        document.getElementById('kpiDaysToOffer').textContent =
+          res.estDaysToOffer >= 180 ? '180+ days' : `~${res.estDaysToOffer} days`;
+
+        document.getElementById('kpiWeeklyHours').textContent = res.totalWeeklyHrs.toFixed(1);
+        const burnoutBadge = document.getElementById('burnoutBadge');
+        const burnoutNote = document.getElementById('burnoutNote');
+
+        if (res.totalWeeklyHrs > 44) {
+          burnoutBadge.textContent = 'High Fatigue Risk';
+          burnoutBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700';
+          burnoutNote.textContent = 'Over 44 hrs/wk reduces application quality';
+        } else if (res.totalWeeklyHrs < 16) {
+          burnoutBadge.textContent = 'Low Volume';
+          burnoutBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800';
+          burnoutNote.textContent = 'Room to add high-ROI outreach touchpoints';
+        } else {
+          burnoutBadge.textContent = 'Sustainable Pace';
+          burnoutBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700';
+          burnoutNote.textContent = 'Optimal balance of volume, outreach, & prep';
+        }
+
+        document.getElementById('kpiBlendedRate').textContent = `${res.blendedScreenRate.toFixed(1)}%`;
+        const liftOverCold = res.blendedScreenRate - 2.5;
+        document.getElementById('kpiLiftNote').textContent =
+          liftOverCold >= 0
+            ? `+${liftOverCold.toFixed(1)}% lift over 2.5% cold baseline`
+            : `${liftOverCold.toFixed(1)}% vs 2.5% cold baseline`;
+
+        // Upskilling Lag Note
+        const upskillInsight = document.getElementById('upskillInsight');
+        if (state.days === 30) {
+          upskillInsight.innerHTML =
+            `At <span class="font-semibold">${state.upskillHrsDay.toFixed(1)} hr/day</span> (${Math.round(state.upskillHrsDay * 20)} hrs/mo), study adds &lt;3% lift in a 30-day sprint. Shift excess study hours to outreach for faster interviews.`;
+        } else {
+          upskillInsight.innerHTML =
+            `Over <span class="font-semibold">${state.days} days</span>, <span class="font-semibold">${state.upskillHrsDay.toFixed(1)} hr/day</span> compounds into portfolio proof—adding moderate conversion lift.`;
+        }
+
+        // Update Funnel Section
+        document.getElementById('funnelDaysLabel').textContent =
+          `${res.workdays} active weekdays (${state.days} calendar days)`;
+
+        document.getElementById('stage1Count').textContent =
+          `${res.totalTouchpoints} total (${res.totalApps} apps + ${res.totalOutreach} outreach)`;
+        const coldPct1 = res.totalTouchpoints > 0 ? (res.totalApps / res.totalTouchpoints) * 100 : 0;
+        const warmPct1 = res.totalTouchpoints > 0 ? (res.totalOutreach / res.totalTouchpoints) * 100 : 0;
+        document.getElementById('barStage1Cold').style.width = `${coldPct1}%`;
+        document.getElementById('barStage1Warm').style.width = `${warmPct1}%`;
+
+        document.getElementById('stage2Count').textContent =
+          `${res.totalScreens.toFixed(1)} screens (${res.coldScreens.toFixed(1)} cold + ${res.warmScreens.toFixed(1)} warm)`;
+        // Scale screens visually against a 25-screen reference cap so bars stay legible
+        const screenScaleMax = Math.max(20, res.totalScreens * 1.25);
+        document.getElementById('barStage2Cold').style.width = `${Math.min(100, (res.coldScreens / screenScaleMax) * 100)}%`;
+        document.getElementById('barStage2Warm').style.width = `${Math.min(100, (res.warmScreens / screenScaleMax) * 100)}%`;
+
+        document.getElementById('stage3Count').textContent = `${res.totalInterviews.toFixed(1)} interviews`;
+        const interviewScaleMax = Math.max(12, res.totalInterviews * 1.3);
+        document.getElementById('barStage3').style.width = `${Math.min(100, (res.totalInterviews / interviewScaleMax) * 100)}%`;
+
+        document.getElementById('stage4Count').textContent = `${res.expectedOffers.toFixed(2)} offers`;
+        const offerScaleMax = Math.max(3, res.expectedOffers * 1.4);
+        document.getElementById('barStage4').style.width = `${Math.min(100, (res.expectedOffers / offerScaleMax) * 100)}%`;
+
+        // Dynamic Bottleneck Advisor
+        updateAdvisor(res);
+
+        // Update Side-by-Side Comparison Grid
+        renderComparisonGrid(res);
+      }
+
+      /**
+       * Diagnoses the user's current slider setup and highlights the highest-leverage next tweak.
+       */
+      function updateAdvisor(res) {
+        const advisorTitle = document.getElementById('advisorTitle');
+        const advisorText = document.getElementById('advisorText');
+
+        if (state.networkPerDay <= 1) {
+          advisorTitle.textContent = 'Bottleneck Detected: Over-Reliance on Cold Portals';
+          advisorText.textContent =
+            `You're sending ${state.appsPerDay} applications/day but only ${state.networkPerDay} warm outreach messages. Adding just 3 targeted LinkedIn messages/day to hiring managers or alumni can add ~${(3 * res.workdays * 0.095 * 0.52).toFixed(1)} extra interviews over ${state.days} days.`;
+        } else if (state.upskillHrsDay >= 2.5 && state.days === 30) {
+          advisorTitle.textContent = 'Timing Mismatch: Heavy Upskilling in a 30-Day Sprint';
+          advisorText.textContent =
+            `Spending ${state.upskillHrsDay.toFixed(1)} hrs/day studying consumes ${(state.upskillHrsDay * 5).toFixed(1)} hrs/week with minimal 30-day interview payoff. Reallocating 1.5 hrs/day into warm outreach and resume tailoring accelerates your first offer.`;
+        } else if (state.tailorHrsWk <= 2) {
+          advisorTitle.textContent = 'Conversion Leak: Low Resume Tailoring & Interview Prep';
+          advisorText.textContent =
+            `With only ${state.tailorHrsWk} hrs/week on tailoring & pitch prep, your screen-to-interview conversion is capped. Raising prep to 6–8 hrs/week lifts both callback rates and final-round close rates.`;
+        } else if (state.appsPerDay > 13) {
+          advisorTitle.textContent = 'Diminishing Returns: Application Volume Fatigue';
+          advisorText.textContent =
+            `Above 12–13 applications/day, customization drops and fatigue lowers your response rate. Trimming back to 7–9 high-fit roles while keeping networking high yields better conversion with fewer hours.`;
+        } else {
+          const warmShare = res.totalScreens > 0 ? Math.round((res.warmScreens / res.totalScreens) * 100) : 0;
+          advisorTitle.textContent = 'High-Leverage Funnel Mix Active';
+          advisorText.textContent =
+            `Your warm outreach drives ${warmShare}% of your expected recruiter screens. Keep tracking actual screen-to-interview conversion weekly—if screens stay high without offers, shift 2 more hours into mock case/interview prep.`;
+        }
+      }
+
+      /**
+       * Renders the 4 side-by-side cards (Live Custom Plan + 3 Benchmark Strategies)
+       * and highlights which strategy wins on Expected Interviews & Offer Probability.
+       */
+      function renderComparisonGrid(customResult) {
+        const grid = document.getElementById('comparisonGrid');
+        document.getElementById('compWindowText').textContent = `${state.days}-day`;
+
+        const allOptions = [
+          {
+            id: 'custom-live',
+            name: 'Your Live Scenario',
+            tag: 'Active Sliders',
+            isCustom: true,
+            description: 'Updates live as you adjust the sliders above.',
+            appsPerDay: state.appsPerDay,
+            networkPerDay: state.networkPerDay,
+            tailorHrsWk: state.tailorHrsWk,
+            upskillHrsDay: state.upskillHrsDay,
+            metrics: customResult
+          },
+          ...PRESET_STRATEGIES.map((strat) => ({
+            ...strat,
+            isCustom: false,
+            metrics: runScenarioModel(strat, state.days)
+          }))
+        ];
+
+        // Determine the winner by highest projected interviews
+        let bestOption = allOptions[0];
+        for (const opt of allOptions) {
+          if (opt.metrics.totalInterviews > bestOption.metrics.totalInterviews) {
+            bestOption = opt;
+          }
+        }
+
+        document.getElementById('winnerSummaryBadge').textContent =
+          `Winner (${state.days}d): ${bestOption.name} (${bestOption.metrics.totalInterviews.toFixed(1)} interviews)`;
+
+        grid.innerHTML = allOptions
+          .map((opt) => {
+            const isWinner = opt.id === bestOption.id;
+            const m = opt.metrics;
+
+            const cardBorder = opt.isCustom
+              ? 'border-2 border-blue-600 bg-blue-50/20'
+              : isWinner
+              ? 'border-2 border-emerald-500 bg-emerald-50/20'
+              : 'border border-slate-200 bg-white';
+
+            return `
+              <div class="rounded-2xl p-4 flex flex-col justify-between transition ${cardBorder}">
+                <div>
+                  <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                      opt.isCustom
+                        ? 'bg-blue-100 text-blue-800'
+                        : isWinner
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-slate-100 text-slate-600'
+                    }">
+                      ${opt.tag}
+                    </span>
+                    ${
+                      isWinner
+                        ? '<span class="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">★ WINS</span>'
+                        : ''
+                    }
+                  </div>
+
+                  <h3 class="text-base font-bold text-slate-900">${opt.name}</h3>
+                  <p class="text-xs text-slate-500 mt-1 min-h-[32px]">${opt.description}</p>
+
+                  <!-- Key Outcome Metrics -->
+                  <div class="mt-4 pt-3 border-t border-slate-200/80 grid grid-cols-2 gap-2">
+                    <div class="bg-white rounded-xl p-2.5 border border-slate-100">
+                      <span class="text-[10px] font-semibold uppercase text-slate-400 block">Interviews</span>
+                      <span class="text-xl font-extrabold text-slate-900">${m.totalInterviews.toFixed(1)}</span>
+                    </div>
+                    <div class="bg-white rounded-xl p-2.5 border border-slate-100">
+                      <span class="text-[10px] font-semibold uppercase text-slate-400 block">≥1 Offer Odds</span>
+                      <span class="text-xl font-extrabold ${isWinner ? 'text-emerald-600' : 'text-slate-900'}">${m.probAtLeastOneOffer}%</span>
+                    </div>
+                  </div>
+
+                  <!-- Input Breakdown -->
+                  <ul class="mt-3 space-y-1.5 text-xs text-slate-600">
+                    <li class="flex justify-between">
+                      <span>Targeted Apps:</span>
+                      <span class="font-semibold text-slate-800">${opt.appsPerDay}/day</span>
+                    </li>
+                    <li class="flex justify-between">
+                      <span>Warm Outreach:</span>
+                      <span class="font-semibold text-slate-800">${opt.networkPerDay}/day</span>
+                    </li>
+                    <li class="flex justify-between">
+                      <span>Tailoring &amp; Prep:</span>
+                      <span class="font-semibold text-slate-800">${opt.tailorHrsWk} hrs/wk</span>
+                    </li>
+                    <li class="flex justify-between">
+                      <span>Upskilling Study:</span>
+                      <span class="font-semibold text-slate-800">${opt.upskillHrsDay.toFixed(1)} hr/day</span>
+                    </li>
+                    <li class="flex justify-between pt-1 border-t border-slate-100">
+                      <span>Weekly Load:</span>
+                      <span class="font-semibold text-slate-800">${m.totalWeeklyHrs.toFixed(1)} hrs/wk</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="mt-4 pt-3">
+                  ${
+                    opt.isCustom
+                      ? '<div class="w-full py-2 text-center text-xs font-semibold text-blue-700 bg-blue-100/70 rounded-xl">Currently Editing Above</div>'
+                      : `<button type="button" data-preset="${opt.id}" class="apply-preset-btn w-full py-2 px-3 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition">
+                          Load Into Sliders
+                        </button>`
+                  }
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        // Attach click listeners to preset load buttons
+        document.querySelectorAll('.apply-preset-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const presetId = e.currentTarget.getAttribute('data-preset');
+            const found = PRESET_STRATEGIES.find((p) => p.id === presetId);
+            if (found) {
+              applyValuesToSliders(found);
+            }
+          });
+        });
+      }
+
+      /**
+       * Helper to apply a preset or default state to sliders and trigger a re-render.
+       */
+      function applyValuesToSliders(config) {
+        state.appsPerDay = config.appsPerDay;
+        state.networkPerDay = config.networkPerDay;
+        state.tailorHrsWk = config.tailorHrsWk;
+        state.upskillHrsDay = config.upskillHrsDay;
+
+        sliderApps.value = state.appsPerDay;
+        sliderNetwork.value = state.networkPerDay;
+        sliderTailor.value = state.tailorHrsWk;
+        sliderUpskill.value = state.upskillHrsDay;
+
+        render();
+      }
+
+      // Event Listeners for Sliders
+      sliderApps.addEventListener('input', (e) => {
+        state.appsPerDay = Number(e.target.value);
+        render();
+      });
+
+      sliderNetwork.addEventListener('input', (e) => {
+        state.networkPerDay = Number(e.target.value);
+        render();
+      });
+
+      sliderTailor.addEventListener('input', (e) => {
+        state.tailorHrsWk = Number(e.target.value);
+        render();
+      });
+
+      sliderUpskill.addEventListener('input', (e) => {
+        state.upskillHrsDay = Number(e.target.value);
+        render();
+      });
+
+      // Horizon Toggle Buttons (30 / 60 / 90 Days)
+      horizonBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.days = Number(btn.getAttribute('data-days'));
+          horizonBtns.forEach((b) => {
+            b.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+            b.classList.add('text-slate-600');
+          });
+          btn.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+          btn.classList.remove('text-slate-600');
+          render();
+        });
+      });
+
+      // Reset Button
+      resetBtn.addEventListener('click', () => {
+        applyValuesToSliders({
+          appsPerDay: 8,
+          networkPerDay: 3,
+          tailorHrsWk: 6,
+          upskillHrsDay: 1.0
+        });
+      });
+
+      // Initial render on load
+      render();
+    })();
+  </script>
+</body>
+</html>
