@@ -2,7 +2,7 @@
 
 An interactive funnel model for testing how daily job-search habits (applications, networking outreach, prep time, study time) change the number of screens, interviews and offers you can expect over 30, 60 or 90 days. It also has a visa-sponsorship scenario, because employers that can't sponsor can't convert an interview into an offer for candidates who need it.
 
-**Live demo:** https://sushantdai.github.io/job-search-planner/
+**Live demo:** https://sushantdai.github.io/-job-search-planner/
 
 ![Planner screenshot](screenshot.png)
 
